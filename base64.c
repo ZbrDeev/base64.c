@@ -1,6 +1,5 @@
 #include "base64.h"
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,16 +53,6 @@ const char *base64Encode(const char *input) {
 
   free(binary);
 
-  int padding = round((double)size / 6);
-
-  if (padding <= 0) {
-    return byteBase64;
-  }
-
-  for (int i = padding; i < strlen(byteBase64); ++i) {
-    byteBase64[i] = '=';
-  }
-
   return byteBase64;
 }
 
@@ -104,8 +93,6 @@ const char *base64Decode(const char *input) {
       if (data - pow2 >= 0) {
         data -= pow2;
         *binaryIt = 1;
-      } else {
-        *binaryIt = 0;
       }
       ++binaryIt;
     }
@@ -119,16 +106,16 @@ const char *base64Decode(const char *input) {
   char *result = (char *)calloc(size + 1, sizeof(char));
 
   for (int i = 0; i < size; ++i) {
-    int calcResult = 0;
+    int sumOfBit = 0;
 
     for (int j = 0; j < 8; ++j) {
       if (*binaryIt == 1) {
-        calcResult += pow(2, 8 - 1 - j);
+        sumOfBit += pow(2, 8 - 1 - j);
       }
       ++binaryIt;
     }
 
-    result[i] = (char)calcResult;
+    result[i] = (char)sumOfBit;
   }
 
   free(binary);
