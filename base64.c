@@ -1,5 +1,6 @@
 #include "base64.h"
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -32,12 +33,16 @@ const char *base64Encode(const char *input) {
   int index = 0;
 
   for (int i = 0; i < strlen(byteBase64); ++i) {
-    if (index == size) {
+    if (index >= size) {
       break;
     }
+
     int sumOfBit = 0;
 
     for (int j = 0; j < 6; ++j) {
+      if (index == size) {
+        break;
+      }
       if (binary[index] == 1) {
         sumOfBit += pow(2, 6 - 1 - j);
       }
