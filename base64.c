@@ -25,7 +25,7 @@ const char *base64Encode(const char *input) {
     }
   }
 
-  int roundedSize = round(size / 6) + (round(size / 6) - 4);
+  int roundedSize = 4 * ((strlen(input) + 2) / 3);
   char *byteBase64 = (char *)calloc(roundedSize + 1, sizeof(char));
   memset(byteBase64, '=', roundedSize);
 
@@ -43,7 +43,7 @@ const char *base64Encode(const char *input) {
         break;
       }
       if (binary[index] == 1) {
-        sumOfBit += pow(2, 6 - 1 - j);
+        sumOfBit += pow(2, 5 - j);
       }
       ++index;
     }
@@ -85,7 +85,7 @@ const char *base64Decode(const char *input) {
     }
 
     for (int i = 0; i < 6; ++i) {
-      int pow2 = (int)pow(2, 6 - 1 - i);
+      int pow2 = (int)pow(2, 5 - i);
       if (data - pow2 >= 0) {
         data -= pow2;
         binary[index] = '1';
