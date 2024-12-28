@@ -11,6 +11,11 @@ static const char baseAlphabet[64] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 const char *base64Encode(const char *input) {
+  int inputSize = strlen(input);
+  int roundedSize = 4 * ((strlen(input) + 2) / 3);
+  char *byteBase64 = (char *)calloc(roundedSize + 1, sizeof(char));
+  memset(byteBase64, '=', roundedSize);
+
   const unsigned int size = strlen(input) * 8;
   int *binary = (int *)calloc(size, sizeof(int));
 
@@ -24,10 +29,6 @@ const char *base64Encode(const char *input) {
       ++it;
     }
   }
-
-  int roundedSize = 4 * ((strlen(input) + 2) / 3);
-  char *byteBase64 = (char *)calloc(roundedSize + 1, sizeof(char));
-  memset(byteBase64, '=', roundedSize);
 
   int index = 0;
 
