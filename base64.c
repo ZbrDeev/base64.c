@@ -65,26 +65,22 @@ const char *base64Decode(const char *input) {
     }
   }
 
-  char *resizedInput = (char *)calloc(len + 1, sizeof(char));
-  int *binary = (int *)calloc(len * 6, sizeof(int));
+  char *binary = (char *)calloc(len * 6, sizeof(char));
+  memset(binary, '0', len * 6 * sizeof(char));
+
+  int index = 0;
 
   for (int i = 0; i < len; ++i) {
-    resizedInput[i] = input[i];
-  }
-
-  int *binaryIt = binary;
-
-  for (int i = 0; i < strlen(resizedInput); ++i) {
     int data = 0;
-    if ('A' <= resizedInput[i] || resizedInput[i] <= 'Z') {
-      data = resizedInput[i] - 0x41;
-    } else if ('a' <= resizedInput[i] || resizedInput[i] <= 'z') {
-      data = resizedInput[i] - 0x61 + 26;
-    } else if ('0' <= resizedInput[i] || resizedInput[i] <= '9') {
-      data = resizedInput[i] - 0x61 + 52;
-    } else if (resizedInput[i] == '+') {
+    if ('A' <= input[i] && input[i] <= 'Z') {
+      data = input[i] - 0x41;
+    } else if ('a' <= input[i] && input[i] <= 'z') {
+      data = input[i] - 0x61 + 26;
+    } else if ('0' <= input[i] && input[i] <= '9') {
+      data = input[i] - 0x30 + 52;
+    } else if (input[i] == '+') {
       data = 62;
-    } else if (resizedInput[i] == '/') {
+    } else if (input[i] == '/') {
       data = 63;
     }
 
@@ -92,30 +88,29 @@ const char *base64Decode(const char *input) {
       int pow2 = (int)pow(2, 6 - 1 - i);
       if (data - pow2 >= 0) {
         data -= pow2;
-        *binaryIt = 1;
+        binary[index] = '1';
       }
-      ++binaryIt;
+      ++index;
     }
   }
 
-  free(resizedInput);
+  index = 0;
 
-  binaryIt = binary;
-
-  int size = len * 6 % 8;
+  int size = len * 6 / 8;
   char *result = (char *)calloc(size + 1, sizeof(char));
 
   for (int i = 0; i < size; ++i) {
-    int sumOfBit = 0;
+    char sumOfBit[8];
+    memset(sumOfBit, '0', 8);
 
     for (int j = 0; j < 8; ++j) {
-      if (*binaryIt == 1) {
-        sumOfBit += pow(2, 8 - 1 - j);
+      if (binary[index] == '1') {
+        sumOfBit[j] = '1';
       }
-      ++binaryIt;
+      ++index;
     }
 
-    result[i] = (char)sumOfBit;
+    result[i] = strtol(sumOfBit, 0, 2);
   }
 
   free(binary);
