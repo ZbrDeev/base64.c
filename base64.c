@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char baseAlphabet[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -12,16 +16,16 @@ static const char baseAlphabet[64] = {
 
 const char *base64Encode(const char *input) {
   int inputSize = strlen(input);
-  int roundedSize = 4 * ((strlen(input) + 2) / 3);
+  int roundedSize = 4 * ((inputSize + 2) / 3);
   char *byteBase64 = (char *)calloc(roundedSize + 1, sizeof(char));
   memset(byteBase64, '=', roundedSize);
 
-  const unsigned int size = strlen(input) * 8;
+  const unsigned int size = inputSize * 8;
   int *binary = (int *)calloc(size, sizeof(int));
 
   int *it = binary;
 
-  for (int i = 0; i < strlen(input); ++i) {
+  for (int i = 0; i < inputSize; ++i) {
     for (int j = 7; j >= 0; --j) {
       if (input[i] & (1 << j)) {
         *it = 1;
@@ -58,10 +62,10 @@ const char *base64Encode(const char *input) {
 }
 
 const char *base64Decode(const char *input) {
-  int len = 0;
+  int len = strlen(input);
 
-  for (; len < strlen(input); ++len) {
-    if (input[len] == '=') {
+  for (; len > 0; --len) {
+    if (input[len] != '=') {
       break;
     }
   }
@@ -102,12 +106,9 @@ const char *base64Decode(const char *input) {
 
   for (int i = 0; i < size; ++i) {
     char sumOfBit[8];
-    memset(sumOfBit, '0', 8);
 
     for (int j = 0; j < 8; ++j) {
-      if (binary[index] == '1') {
-        sumOfBit[j] = '1';
-      }
+      sumOfBit[j] = binary[index];
       ++index;
     }
 
@@ -118,3 +119,7 @@ const char *base64Decode(const char *input) {
 
   return result;
 }
+
+#ifdef __cplusplus
+}
+#endif

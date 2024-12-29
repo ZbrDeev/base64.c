@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(base64 VERSION 1.0.3 DESCRIPTION "Base64 library")
+project(base64 VERSION 1.0.4 DESCRIPTION "Base64 library")
 
 add_library(base64 SHARED base64.c)
 target_link_libraries(base64 m)
