@@ -21,14 +21,15 @@ const char *base64Encode(const char *input) {
   memset(byteBase64, '=', roundedSize);
 
   const unsigned int size = inputSize * 8;
-  int *binary = (int *)calloc(size, sizeof(int));
+  char *binary = (char *)calloc(size, sizeof(char));
+  memset(binary, '0', size * sizeof(char));
 
-  int *it = binary;
+  char *it = binary;
 
   for (int i = 0; i < inputSize; ++i) {
     for (int j = 7; j >= 0; --j) {
       if (input[i] & (1 << j)) {
-        *it = 1;
+        *it = '1';
       }
       ++it;
     }
@@ -47,7 +48,7 @@ const char *base64Encode(const char *input) {
       if (index == size) {
         break;
       }
-      if (binary[index] == 1) {
+      if (binary[index] == '1') {
         sumOfBit += pow(2, 5 - j);
       }
       ++index;
