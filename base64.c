@@ -1,83 +1,68 @@
 #include "base64.h"
-#include <math.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-static const char baseAlphabet[64] = {
+static const char base_alphabet[64] = {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
     'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
-const char *base64Encode(const char *input) {
-  int inputSize = strlen(input);
-  int roundedSize = 4 * ((inputSize + 2) / 3);
-  char *byteBase64 = (char *)calloc(roundedSize + 1, sizeof(char));
-  memset(byteBase64, '=', roundedSize);
+const char *base64Encode(const char *input, size_t input_size) {
+  int rounded_size = 4 * ((input_size + 2) / 3);
 
-  const unsigned int size = inputSize * 8;
-  char *binary = (char *)calloc(size, sizeof(char));
-  memset(binary, '0', size * sizeof(char));
+  char *byte_base64 = (char *)malloc(rounded_size + 1);
+  byte_base64[rounded_size] = '\0';
 
-  char *it = binary;
+  char *it = (char *)input;
+  char result = 0;
+  char result_it = 0;
+  size_t base64_it = 0;
 
-  for (int i = 0; i < inputSize; ++i) {
-    for (int j = 7; j >= 0; --j) {
-      if (input[i] & (1 << j)) {
-        *it = '1';
-      }
+  for (size_t i = 0; i <= input_size * 8; ++i) {
+    bool bit = (*it >> (7 - (i % 8))) & 1;
+
+    result |= bit << (5 - result_it);
+
+    if (++result_it == 6) {
+      result_it = 0;
+      byte_base64[base64_it++] = base_alphabet[(size_t)result];
+      result = 0;
+    }
+
+    if (i != 0 && !(i % 8)) {
       ++it;
     }
   }
 
-  int index = 0;
-
-  for (int i = 0; i < strlen(byteBase64); ++i) {
-    if (index >= size) {
-      break;
-    }
-
-    int sumOfBit = 0;
-
-    for (int j = 0; j < 6; ++j) {
-      if (index == size) {
-        break;
-      }
-      if (binary[index] == '1') {
-        sumOfBit += pow(2, 5 - j);
-      }
-      ++index;
-    }
-
-    byteBase64[i] = baseAlphabet[sumOfBit];
+  if (result > 0) {
+    byte_base64[base64_it++] = base_alphabet[(size_t)result];
   }
 
-  free(binary);
+  for (; base64_it < rounded_size; ++base64_it) {
+    byte_base64[base64_it] = '=';
+  }
 
-  return byteBase64;
+  return byte_base64;
 }
 
-const char *base64Decode(const char *input) {
-  int len = strlen(input);
-
-  for (; len > 0; --len) {
-    if (input[len] != '=') {
-      break;
-    }
+const char *base64Decode(const char *input, size_t input_size) {
+  while (input[input_size - 1] != '=') {
+    --input_size;
   }
 
-  char *binary = (char *)calloc(len * 6, sizeof(char));
-  memset(binary, '0', len * 6 * sizeof(char));
+  size_t result_len = input_size * 6 / 8;
+  char *result = (char *)malloc(result_len + 1);
+  result[result_len] = '\0';
 
-  int index = 0;
+  size_t base64_it = 0;
+  size_t it_count = 0;
+  char result_it = 0;
 
-  for (int i = 0; i < len; ++i) {
+  for (size_t i = 0; i <= input_size; ++i) {
     int data = 0;
+
     if ('A' <= input[i] && input[i] <= 'Z') {
       data = input[i] - 0x41;
     } else if ('a' <= input[i] && input[i] <= 'z') {
@@ -90,37 +75,18 @@ const char *base64Decode(const char *input) {
       data = 63;
     }
 
-    for (int i = 0; i < 6; ++i) {
-      int pow2 = (int)pow(2, 5 - i);
-      if (data - pow2 >= 0) {
-        data -= pow2;
-        binary[index] = '1';
+    for (int j = 5; j >= 0; --j) {
+      bool bit = (data >> j) & 1;
+
+      result_it |= bit << (7 - it_count);
+
+      if (++it_count == 8) {
+        it_count = 0;
+        result[base64_it++] = (char)result_it;
+        result_it = 0;
       }
-      ++index;
     }
   }
-
-  index = 0;
-
-  int size = len * 6 / 8;
-  char *result = (char *)calloc(size + 1, sizeof(char));
-
-  for (int i = 0; i < size; ++i) {
-    char sumOfBit[8];
-
-    for (int j = 0; j < 8; ++j) {
-      sumOfBit[j] = binary[index];
-      ++index;
-    }
-
-    result[i] = strtol(sumOfBit, 0, 2);
-  }
-
-  free(binary);
 
   return result;
 }
-
-#ifdef __cplusplus
-}
-#endif
